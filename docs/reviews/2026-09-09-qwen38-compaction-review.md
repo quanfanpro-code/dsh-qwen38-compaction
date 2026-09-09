@@ -39,3 +39,11 @@
 新增 Windows 选包脚本已检查语法；安装包的实际安装命令已执行验证。图形文件选择窗口未用自动化单独操作，不将其记为已做界面测试。
 
 没有发布真实服务地址、凭据、对话、业务文件或完整本机日志。仅公开合成测试和无敏感信息的结果。
+
+## GitHub 交付核验
+
+公开仓库：https://github.com/quanfanpro-code/dsh-qwen38-compaction ，协议 MIT。
+
+发布页：https://github.com/quanfanpro-code/dsh-qwen38-compaction/releases/tag/v0.1.0 。安装包及 Windows 选包脚本已上传，服务器返回的两个附件 SHA-256 与本地相同。GitHub 会清理非 ASCII 附件名，因此脚本附件命名为 install-plugin.ps1，并显示中文标签“安装插件”；仓库源码仍为中文文件名。
+
+运行时停用适配器后重新装载原生适配器的请求检查通过，关闭思考参数不再出现；目标修复组件的生命周期可逆。最终测试 3/3 通过。

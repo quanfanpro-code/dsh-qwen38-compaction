@@ -21,7 +21,7 @@ Windows、Node.js 24、DSH 0.1.2-rc.1、标准模式 standard、通过 OpenAI �
 
 ## 安装
 
-从本仓库 Releases 下载 `dsh-qwen38-compaction-0.1.0.tgz` 和 `安装插件.ps1`。右键安装脚本，选择“使用 PowerShell 运行”，在弹出的文件选择窗口中选中安装包；不需要填写文件路径。
+从本仓库 Releases 下载 `dsh-qwen38-compaction-0.1.0.tgz` 和标注“安装插件”的脚本（附件文件名为 `install-plugin.ps1`）。右键安装脚本，选择“使用 PowerShell 运行”，在弹出的文件选择窗口中选中安装包；不需要填写文件路径。
 
 脚本会备份现有 web 配置，并调用 DSH 自带插件管理安装。如果你习惯命令行，等价操作是：
 
