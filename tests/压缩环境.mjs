@@ -7,11 +7,11 @@ import AgentLoop from '@deepseek-ai/dsh-agent-loop';
 import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit';
 import TokenMeter from '@deepseek-ai/dsh-token-meter';
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection';
-import { BasicCompactionEngine } from '@deepseek-ai/dsh-compaction-basic';
+import { BasicCompactionEngine } from '../dist/compaction.mjs';
 import { Session, SessionId } from '@deepseek-ai/dsh-session';
 import { createUserMessage, createAssistantMessage } from '@deepseek-ai/dsh-llm';
 import * as plugin from '../dist/adapter.mjs';
-import { PROVIDER, MODEL } from '../src/适配策略.mjs';
+import { MODEL } from '../src/适配策略.mjs';
 
 export const FACTS = '任务：整理虚构项目晨星的清单；金额为 738291 元；交付日期为 2030-12-17；不要发送邮件；纠正：联系人是周宁，不是张伟；待办：核对三份附件。';
 export const QUESTION = '请复述晨星项目的金额、交付日期、禁止事项、纠正后的联系人和待办。不要使用工具。';
@@ -22,39 +22,34 @@ export async function standardPolicy() {
   const schema = yaml.DEFAULT_SCHEMA.extend(new yaml.Type('tag:yaml.org,2002:js', { kind: 'scalar', construct: text => ({ expression: text }) }));
   const rows = yaml.load(source, { schema });
   const row = rows.find(r => r.id === 'compaction').config.find(r => r.id === 'compaction-basic');
-  const policy = structuredClone(row.config);
-  for (const target of policy.modelPolicies) {
-    // 只执行插件自身可信配置的目标名称表达式，不执行消息或外部配置。
-    if (target.provider?.expression) target.provider = Function('process', `return (${target.provider.expression})`)(process);
-  }
-  return policy;
+  if (row.name !== 'dsh-qwen38-compaction/compaction') throw new Error('标准模式未加载插件压缩组件');
+  return structuredClone(row.config ?? {});
 }
 
-export function seedHistory(chars = 12000) {
+export function seedHistory(chars = 12000, provider = 'renamed-provider', model = MODEL) {
   const session = Session.create(SessionId(`seed-${randomUUID()}`));
   for (let turn = 1; turn <= 4; turn++) {
     session.append('turn/start', { turn });
     session.append('user/message', createUserMessage({ content: [{ type: 'text', text: `${turn === 1 ? FACTS : '沿用先前任务，无新事实。'}\n以下仅为合成填充，无新事实：\n${'Synthetic filler record. No new facts. '.repeat(Math.ceil(chars / 38))}` }], source: { kind: 'user' } }), { surfaceOp: 'append' });
     session.append('step/start', { turn, step: 1 });
-    if (turn === 1) session.append('request/header', { header: { config: { provider: PROVIDER, model: MODEL, maxTokens: 16384 } }, reason: 'initial' });
-    session.append('assistant/message', { stream: [], turn, step: 1, message: createAssistantMessage({ content: [{ type: 'text', text: '已记录，无其他变更。' }], source: { provider: PROVIDER, model: MODEL } }) }, { surfaceOp: 'append' });
+    if (turn === 1) session.append('request/header', { header: { config: { provider, model, maxTokens: 16384 } }, reason: 'initial' });
+    session.append('assistant/message', { stream: [], turn, step: 1, message: createAssistantMessage({ content: [{ type: 'text', text: '已记录，无其他变更。' }], source: { provider, model } }) }, { surfaceOp: 'append' });
     session.append('step/end', { turn, step: 1 });
     session.append('turn/end', { turn, reason: { kind: 'completed' } });
   }
   return session.snapshotEvents();
 }
 
-export async function harness({ profile, chars = 100000, auto = true, baselineBudget = false } = {}) {
+export async function harness({ profile, chars = 100000, auto = true, provider = 'renamed-provider', model = MODEL } = {}) {
   const ctx = new Context();
   await mountAgentLoopTestDependencies(ctx);
   await ctx.plugin(SessionProjectionRegistry);
   await ctx.plugin(AgentLoop, { agents: [] });
   await ctx.plugin(TokenMeter);
-  await ctx.plugin(plugin, { providers: { [PROVIDER]: profile } });
+  await ctx.plugin(plugin, { providers: { [provider]: profile } });
   const policy = await standardPolicy();
-  if (baselineBudget) delete policy.modelPolicies;
   const compact = new BasicCompactionEngine(ctx, { ...policy, auto });
-  const handle = await ctx.agentLoop.createAgent(ctx, { sessionId: SessionId(`acceptance-${randomUUID()}`), seed: seedHistory(chars), agentOptions: { provider: PROVIDER, model: MODEL, maxTokens: 1024 } });
+  const handle = await ctx.agentLoop.createAgent(ctx, { sessionId: SessionId(`acceptance-${randomUUID()}`), seed: seedHistory(chars, provider, model), agentOptions: { provider, model, maxTokens: 1024 } });
   return { ctx, agent: handle.agent, compact, close: () => ctx.fiber.dispose() };
 }
 

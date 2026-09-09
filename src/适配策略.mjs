@@ -1,12 +1,11 @@
 ﻿import { createRequire } from 'node:module';
 
 export const VERSION = '0.1.2-rc.1';
-export const PROVIDER = process.env.DSH_QWEN38_PROVIDER || 'qwen38';
 export const MODEL = 'Qwen3.8-27B';
 
 // 只复制摘要请求的模型描述，绝不改共享对象或普通聊天设置。
 export function adaptModel(options, model) {
-  if (options.purpose !== 'compaction' || options.provider !== PROVIDER || options.model !== MODEL) return model;
+  if (options.purpose !== 'compaction' || options.model !== MODEL) return model;
   if (model.api !== 'openai-completions') throw new Error('Qwen 压缩插件仅支持当前已验证的 OpenAI 兼容聊天协议。');
   return { ...model, reasoning: true, compat: { ...model.compat,
     thinkingFormat: 'chat-template',

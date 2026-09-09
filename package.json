@@ -1,6 +1,6 @@
 {
   "name": "dsh-qwen38-compaction",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DSH 与 Qwen3.8 上下文压缩适配：保留原模型接入及普通聊天行为",
   "type": "module",
   "license": "MIT",
@@ -11,6 +11,7 @@
   "exports": {
     ".": "./dist/adapter.mjs",
     "./presets": "./src/模式入口.mjs",
+    "./compaction": "./dist/compaction.mjs",
     "./package.json": "./package.json"
   },
   "files": [

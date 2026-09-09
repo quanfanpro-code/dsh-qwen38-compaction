@@ -2,7 +2,7 @@
 
 本插件以 MIT 协议发布。
 
-构建产物 dist/adapter.mjs 派生自 DeepSeek 的 @deepseek-ai/dsh-llm-pi-ai 0.1.2-rc.1，标准模式文件派生自 @deepseek-ai/dsh-agent-presets 同版本。原作者版权为 Copyright (c) 2026 DeepSeek，采用 MIT 协议；完整原许可证随制品放在 dist/UPSTREAM-LICENSE。
+构建产物 dist/adapter.mjs 派生自 DeepSeek 的 @deepseek-ai/dsh-llm-pi-ai 0.1.2-rc.1，dist/compaction.mjs 派生自 @deepseek-ai/dsh-compaction-basic 同版本，标准模式文件派生自 @deepseek-ai/dsh-agent-presets 同版本。原作者版权为 Copyright (c) 2026 DeepSeek，采用 MIT 协议；完整原许可证随制品放在 dist/UPSTREAM-LICENSE。
 
 官方仓库：https://github.com/deepseek-ai/deepseek-harness
 

@@ -15,13 +15,13 @@
 
 Windows、Node.js 24、DSH 0.1.2-rc.1、标准模式 standard、通过 OpenAI 兼容聊天接口提供的 Qwen3.8-27B。模型服务须支持 `chat_template_kwargs.enable_thinking=false`。
 
-默认匹配现有服务商标识 `qwen38` 和模型标识 `Qwen3.8-27B`，不是按页面显示名称猜测。若自己的服务商标识不同，可在启动 DSH 的环境中设置 `DSH_QWEN38_PROVIDER` 为原标识；不用创建另一个接入。
+只匹配模型标识 `Qwen3.8-27B`，不检查服务商标识或显示名称。服务商随便改名，仍然生效；不需要设置额外环境变量，也不用创建另一个接入。
 
 其他 DSH 版本、其他模型名称、自定义模式不在首版已验证范围内。升级 DSH 前先停用本插件，待插件明确支持新版本后再启用。
 
 ## 安装
 
-从本仓库 Releases 下载 `dsh-qwen38-compaction-0.1.0.tgz` 和标注“安装插件”的脚本（附件文件名为 `install-plugin.ps1`）。右键安装脚本，选择“使用 PowerShell 运行”，在弹出的文件选择窗口中选中安装包；不需要填写文件路径。
+从本仓库 Releases 下载 `dsh-qwen38-compaction-0.1.1.tgz` 和标注“安装插件”的脚本（附件文件名为 `install-plugin.ps1`）。右键安装脚本，选择“使用 PowerShell 运行”，在弹出的文件选择窗口中选中安装包；不需要填写文件路径。
 
 脚本会备份现有 web 配置，并调用 DSH 自带插件管理安装。如果你习惯命令行，等价操作是：
 

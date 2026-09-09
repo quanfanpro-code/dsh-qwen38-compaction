@@ -5,12 +5,12 @@ import { homedir } from 'node:os';
 import yaml from 'js-yaml';
 import { createUserMessage } from '@deepseek-ai/dsh-llm';
 import { harness, QUESTION, textOf } from '../tests/压缩环境.mjs';
-import { PROVIDER, MODEL } from '../src/适配策略.mjs';
+import { MODEL } from '../src/适配策略.mjs';
 
 // 只读本机配置。凭据只留在进程内，不写日志或验收文件。
 const dshHome = process.env.DSH_HOME || join(homedir(), '.dsh');
 const settings = yaml.load(await readFile(join(dshHome, 'settings.yaml'), 'utf8'));
-const profile = structuredClone(settings['llm-pi-ai']?.providers?.[PROVIDER]);
+const profile = structuredClone(Object.values(settings['llm-pi-ai']?.providers ?? {}).find(p => p.models?.some(m => m.id === MODEL)));
 assert.ok(profile, '未找到当前 Qwen 服务配置');
 if (profile.apiKeyEnv) {
   const credentials = yaml.load(await readFile(join(dshHome, '.credentials.yaml'), 'utf8'));

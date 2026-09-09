@@ -46,7 +46,8 @@ test('真实请求：只对目标摘要关闭思考，普通聊天和其他目�
     assert.equal(received.size, 4);
     assert.equal(received.get('compact').chat_template_kwargs?.enable_thinking, false);
     assert.equal(received.get('compact').chat_template_kwargs.keep, 'kept');
-    for (const id of ['normal', 'provider', 'model']) {
+    assert.equal(received.get('provider').chat_template_kwargs?.enable_thinking, false, '同一模型更换服务商标识仍须关闭摘要思考');
+    for (const id of ['normal', 'model']) {
       assert.notEqual(received.get(id).chat_template_kwargs?.enable_thinking, false, id);
     }
     for await (const chunk of ctx.llm.stream({ provider: 'qwen38', model: 'Qwen3.8-27B', purpose: 'agent',
