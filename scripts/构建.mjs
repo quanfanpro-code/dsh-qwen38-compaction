@@ -30,8 +30,21 @@ assert.ok(!standard.includes('modelPolicies:'), '源标准模式已被修改，�
 const compaction = await readFile(join(compactionRoot, 'lib/index.js'), 'utf8');
 const capEntry = 'maxTokens: override?.maxTokens ?? config.maxTokens,';
 assert.equal(compaction.split(capEntry).length, 2, '上游摘要上限边界改变，拒绝生成');
-const patchedCompaction = 'import { MODEL, assertCompatible } from "../src/适配策略.mjs";\nassertCompatible();\n' + compaction.replace(capEntry,
-  'maxTokens: target.model === MODEL ? 16384 : (override?.maxTokens ?? config.maxTokens),');
+const autoEntry = 'if (this.config.auto) this._registerAutomaticCompaction();';
+const catchStart = '\t\t\t\tif (error instanceof TargetPressureConfigError) {';
+const catchEnd = '\t\t\t\tctx.logger.warn(`step compaction failed: ${message}; continuing the turn`);';
+assert.equal(compaction.split(autoEntry).length, 2, '上游压缩注册入口改变');
+assert.equal(compaction.split(catchStart).length, 2, '上游压缩错误入口改变');
+assert.equal(compaction.split(catchEnd).length, 2, '上游压缩错误出口改变');
+const oldCatch = compaction.slice(compaction.indexOf(catchStart), compaction.indexOf(catchEnd) + catchEnd.length);
+const patchedCompaction = 'import { MODEL, assertCompatible } from "../src/适配策略.mjs";\nimport { assertCompactionSucceeded } from "../src/失败拦截.mjs";\nassertCompatible();\n' + compaction.replace(capEntry,
+  'maxTokens: target.model === MODEL ? 16384 : (override?.maxTokens ?? config.maxTokens),')
+  .replace(autoEntry, `ctx.on("agent/pre-step", ({ agent }, next) => {
+      assertCompactionSucceeded(agent.session);
+      return next();
+    });
+    ${autoEntry}`)
+  .replace(oldCatch, '\t\t\t\tthrow new Error("上下文压缩失败，已停止对话。请先用 /compact 重新压缩，成功后再继续。", { cause: error });');
 const patchedPreset = standard.replace(entry, "      name: 'dsh-qwen38-compaction/compaction'");
 await mkdir(join(root, 'dist/presets/standard'), { recursive: true });
 await writeFile(join(root, 'dist/adapter.mjs'), edited, 'utf8');
@@ -44,6 +57,6 @@ await writeFile(join(root, 'dist/provenance.json'), JSON.stringify({ version,
   sourceAdapterSha256: createHash('sha256').update(source).digest('hex'),
   sourceStandardSha256: createHash('sha256').update(standard).digest('hex'),
   sourceCompactionSha256: createHash('sha256').update(compaction).digest('hex'),
-  changes: ['仅按模型标识匹配，摘要用途下复制模型描述并关闭思考', '仅按模型标识调整原生摘要上限为 16384', '摘要连接等待遵守原配置，并限制完整请求总时长'],
+  changes: ['仅按模型标识匹配，摘要用途下复制模型描述并关闭思考', '仅按模型标识调整原生摘要上限为 16384', '摘要连接等待遵守原配置，并限制完整请求总时长', '压缩失败停止普通聊天，成功重试后恢复，会话重开不能绕过'],
 }, null, 2) + '\n');
 console.log('构建完成：官方固定版本来源、单个请求分支、标准模式摘要策略。');

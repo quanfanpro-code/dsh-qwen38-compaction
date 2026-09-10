@@ -40,7 +40,7 @@ export function seedHistory(chars = 12000, provider = 'renamed-provider', model 
   return session.snapshotEvents();
 }
 
-export async function harness({ profile, chars = 100000, auto = true, provider = 'renamed-provider', model = MODEL } = {}) {
+export async function harness({ profile, chars = 100000, auto = true, provider = 'renamed-provider', model = MODEL, seed } = {}) {
   const ctx = new Context();
   await mountAgentLoopTestDependencies(ctx);
   await ctx.plugin(SessionProjectionRegistry);
@@ -49,7 +49,7 @@ export async function harness({ profile, chars = 100000, auto = true, provider =
   await ctx.plugin(plugin, { providers: { [provider]: profile } });
   const policy = await standardPolicy();
   const compact = new BasicCompactionEngine(ctx, { ...policy, auto });
-  const handle = await ctx.agentLoop.createAgent(ctx, { sessionId: SessionId(`acceptance-${randomUUID()}`), seed: seedHistory(chars, provider, model), agentOptions: { provider, model, maxTokens: 1024 } });
+  const handle = await ctx.agentLoop.createAgent(ctx, { sessionId: SessionId(`acceptance-${randomUUID()}`), seed: seed ?? seedHistory(chars, provider, model), agentOptions: { provider, model, maxTokens: 1024 } });
   return { ctx, agent: handle.agent, compact, close: () => ctx.fiber.dispose() };
 }
 
