@@ -17,8 +17,11 @@ for (const path of [adapterRoot, presetRoot, compactionRoot]) assert.equal(JSON.
 const source = await readFile(join(adapterRoot, 'lib/index.js'), 'utf8');
 const needle = 'const model = this.modelOf(snapshot, options.provider, options.model);';
 assert.equal(source.split(needle).length, 2, '上游请求边界改变或含旧补丁，拒绝生成');
-const edited = 'import { adaptModel, assertCompatible } from "../src/适配策略.mjs";\nassertCompatible();\n' + source.replace(needle,
-  'const model = adaptModel(options, this.modelOf(snapshot, options.provider, options.model));');
+const transportEntry = '...profileOptions(profile, reasoning, apiKey),';
+assert.equal(source.split(transportEntry).length, 2, '上游连接参数边界改变，拒绝生成');
+const edited = 'import { adaptModel, compactionTransport, assertCompatible } from "../src/适配策略.mjs";\nassertCompatible();\n' + source.replace(needle,
+  'const model = adaptModel(options, this.modelOf(snapshot, options.provider, options.model));')
+  .replace(transportEntry, transportEntry + '\n                    ...compactionTransport(options, profile),');
 const standard = await readFile(join(presetRoot, 'presets/standard/agent.cordis.yml'), 'utf8');
 const entry = "      name: '@deepseek-ai/dsh-compaction-basic'";
 assert.equal(standard.split(entry).length, 2, '上游标准模式结构变化');
@@ -41,6 +44,6 @@ await writeFile(join(root, 'dist/provenance.json'), JSON.stringify({ version,
   sourceAdapterSha256: createHash('sha256').update(source).digest('hex'),
   sourceStandardSha256: createHash('sha256').update(standard).digest('hex'),
   sourceCompactionSha256: createHash('sha256').update(compaction).digest('hex'),
-  changes: ['仅按模型标识匹配，摘要用途下复制模型描述并关闭思考', '仅按模型标识调整原生摘要上限为 16384'],
+  changes: ['仅按模型标识匹配，摘要用途下复制模型描述并关闭思考', '仅按模型标识调整原生摘要上限为 16384', '摘要连接等待遵守原配置，并限制完整请求总时长'],
 }, null, 2) + '\n');
 console.log('构建完成：官方固定版本来源、单个请求分支、标准模式摘要策略。');

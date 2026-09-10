@@ -62,6 +62,14 @@ export async function fakeService() {
     const summary = JSON.stringify(body.messages.at(-1)).includes('acting as a compaction engine');
     state.requests.push({ summary, body });
     if (summary && state.mode === 'wait') return;
+    if (summary && state.mode === 'drip') {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream' });
+      const send = () => res.write('data: {"choices":[{"index":0,"delta":{"content":"未完成"},"finish_reason":null}]}\n\n');
+      send();
+      const timer = setInterval(send, 30);
+      res.on('close', () => clearInterval(timer));
+      return;
+    }
     if (summary && state.mode === 'error') { res.writeHead(503); res.end('synthetic failure'); return; }
     const text = summary && state.mode === 'empty' ? '' : FACTS;
     const reason = summary && state.mode === 'truncate' ? 'length' : 'stop';

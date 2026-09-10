@@ -1,6 +1,6 @@
 {
   "name": "dsh-qwen38-compaction",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "DSH 与 Qwen3.8 上下文压缩适配：保留原模型接入及普通聊天行为",
   "type": "module",
   "license": "MIT",
@@ -33,7 +33,8 @@
   },
   "dependencies": {
     "@deepseek-ai/dsh-agent-presets": "0.1.2-rc.1",
-    "@deepseek-ai/dsh-llm-pi-ai": "0.1.2-rc.1"
+    "@deepseek-ai/dsh-llm-pi-ai": "0.1.2-rc.1",
+    "undici": "7.29.0"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.0.2",
