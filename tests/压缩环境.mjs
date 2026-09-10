@@ -1,4 +1,4 @@
-﻿import { Context } from '@deepseek-ai/cordis';
+import { Context } from '@deepseek-ai/cordis';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
@@ -6,7 +6,6 @@ import yaml from 'js-yaml';
 import AgentLoop from '@deepseek-ai/dsh-agent-loop';
 import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit';
 import TokenMeter from '@deepseek-ai/dsh-token-meter';
-import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection';
 import { BasicCompactionEngine } from '../dist/compaction.mjs';
 import { Session, SessionId } from '@deepseek-ai/dsh-session';
 import { createUserMessage, createAssistantMessage } from '@deepseek-ai/dsh-llm';
@@ -43,7 +42,6 @@ export function seedHistory(chars = 12000, provider = 'renamed-provider', model 
 export async function harness({ profile, chars = 100000, auto = true, provider = 'renamed-provider', model = MODEL, seed } = {}) {
   const ctx = new Context();
   await mountAgentLoopTestDependencies(ctx);
-  await ctx.plugin(SessionProjectionRegistry);
   await ctx.plugin(AgentLoop, { agents: [] });
   await ctx.plugin(TokenMeter);
   await ctx.plugin(plugin, { providers: { [provider]: profile } });

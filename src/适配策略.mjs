@@ -2,7 +2,6 @@
 
 import { getGlobalDispatcher } from 'undici';
 
-export const VERSION = '0.1.2-rc.1';
 export const MODEL = 'Qwen3.8-27B';
 
 // 只为摘要请求覆盖连接等待时间，沿用现有连接与代理，不修改全局配置。
@@ -34,10 +33,11 @@ export function adaptModel(options, model) {
   } };
 }
 
+// 不绑定特定 DSH 版本：只确认上游包可解析。正确性由构建时的结构锚点校验保证，
+// 上游结构变化时构建脚本会拒绝生成，而不是在这里按版本号拦截运行。
 export function assertCompatible() {
   const require = createRequire(import.meta.url);
   for (const name of ['dsh-llm-pi-ai', 'dsh-compaction-basic', 'dsh-agent-presets']) {
-    const actual = require(`@deepseek-ai/${name}/package.json`).version;
-    if (actual !== VERSION) throw new Error(`Qwen 压缩插件需要 ${name} ${VERSION}，当前为 ${actual}。请停用插件或使用匹配版本。`);
+    require(`@deepseek-ai/${name}/package.json`);
   }
 }

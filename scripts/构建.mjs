@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile, copyFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
@@ -8,12 +8,12 @@ import { fileURLToPath } from 'node:url';
 // 构建只生成本项目 dist，不修改上游包或用户 DSH 安装目录。
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);
-const version = '0.1.2-rc.1';
+// 不锁定上游版本：当前装的是什么版本就基于什么版本构建，结构锚点不变即可用。
 const upstream = name => dirname(require.resolve(`@deepseek-ai/${name}/package.json`));
 const adapterRoot = upstream('dsh-llm-pi-ai');
 const presetRoot = upstream('dsh-agent-presets');
 const compactionRoot = upstream('dsh-compaction-basic');
-for (const path of [adapterRoot, presetRoot, compactionRoot]) assert.equal(JSON.parse(await readFile(join(path, 'package.json'), 'utf8')).version, version);
+const version = JSON.parse(await readFile(join(adapterRoot, 'package.json'), 'utf8')).version;
 const source = await readFile(join(adapterRoot, 'lib/index.js'), 'utf8');
 const needle = 'const model = this.modelOf(snapshot, options.provider, options.model);';
 assert.equal(source.split(needle).length, 2, '上游请求边界改变或含旧补丁，拒绝生成');
@@ -59,4 +59,4 @@ await writeFile(join(root, 'dist/provenance.json'), JSON.stringify({ version,
   sourceCompactionSha256: createHash('sha256').update(compaction).digest('hex'),
   changes: ['仅按模型标识匹配，摘要用途下复制模型描述并关闭思考', '仅按模型标识调整原生摘要上限为 16384', '摘要连接等待遵守原配置，并限制完整请求总时长', '压缩失败停止普通聊天，成功重试后恢复，会话重开不能绕过'],
 }, null, 2) + '\n');
-console.log('构建完成：官方固定版本来源、单个请求分支、标准模式摘要策略。');
+console.log(`构建完成：基于当前安装的 DSH ${version} 上游源码、单个请求分支、标准模式摘要策略。`);
