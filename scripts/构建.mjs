@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, mkdir, writeFile, copyFile } from 'node:fs/promises';
+import { readFile, mkdir, writeFile, copyFile, rm } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -11,7 +11,7 @@ const require = createRequire(import.meta.url);
 // 不锁定上游版本：当前装的是什么版本就基于什么版本构建，结构锚点不变即可用。
 const upstream = name => dirname(require.resolve(`@deepseek-ai/${name}/package.json`));
 const adapterRoot = upstream('dsh-llm-pi-ai');
-const presetRoot = upstream('dsh-agent-presets');
+const presetRoot = upstream('dsh-web-app');
 const compactionRoot = upstream('dsh-compaction-basic');
 const version = JSON.parse(await readFile(join(adapterRoot, 'package.json'), 'utf8')).version;
 const source = await readFile(join(adapterRoot, 'lib/index.js'), 'utf8');
@@ -22,8 +22,9 @@ assert.equal(source.split(transportEntry).length, 2, '上游连接参数边界�
 const edited = 'import { adaptModel, compactionTransport, assertCompatible } from "../src/适配策略.mjs";\nassertCompatible();\n' + source.replace(needle,
   'const model = adaptModel(options, this.modelOf(snapshot, options.provider, options.model));')
   .replace(transportEntry, transportEntry + '\n                    ...compactionTransport(options, profile),');
-const standard = await readFile(join(presetRoot, 'presets/standard/agent.cordis.yml'), 'utf8');
-const entry = "      name: '@deepseek-ai/dsh-compaction-basic'";
+// 0.1.7 起标准模式由 dsh-web-app 的 preset 声明定义，替换其中压缩行后作为插件 patch 应用。
+const standard = await readFile(join(presetRoot, 'presets/standard.patch.yml'), 'utf8');
+const entry = "name: '@deepseek-ai/dsh-compaction-basic'";
 assert.equal(standard.split(entry).length, 2, '上游标准模式结构变化');
 assert.ok(!standard.includes('modelPolicies:'), '源标准模式已被修改，拒绝覆盖其策略');
 // 原生 modelPolicies 强制绑定服务商，因此只改原生摘要上限的这一处分支。
@@ -45,12 +46,12 @@ const patchedCompaction = 'import { MODEL, assertCompatible } from "../src/适�
     });
     ${autoEntry}`)
   .replace(oldCatch, '\t\t\t\tthrow new Error("上下文压缩失败，已停止对话。请先用 /compact 重新压缩，成功后再继续。", { cause: error });');
-const patchedPreset = standard.replace(entry, "      name: 'dsh-qwen38-compaction/compaction'");
-await mkdir(join(root, 'dist/presets/standard'), { recursive: true });
+const patchedPreset = standard.replace(entry, "name: 'dsh-qwen38-compaction/compaction'");
+await rm(join(root, 'dist/presets/standard'), { recursive: true, force: true });
+await mkdir(join(root, 'dist/presets'), { recursive: true });
 await writeFile(join(root, 'dist/adapter.mjs'), edited, 'utf8');
 await writeFile(join(root, 'dist/compaction.mjs'), patchedCompaction, 'utf8');
-await writeFile(join(root, 'dist/presets/standard/agent.cordis.yml'), patchedPreset, 'utf8');
-await copyFile(join(presetRoot, 'presets/standard/preset.yml'), join(root, 'dist/presets/standard/preset.yml'));
+await writeFile(join(root, 'dist/presets/standard.patch.yml'), patchedPreset, 'utf8');
 await copyFile(join(adapterRoot, 'LICENSE'), join(root, 'dist/UPSTREAM-LICENSE'));
 await writeFile(join(root, 'dist/provenance.json'), JSON.stringify({ version,
   repository: 'https://github.com/deepseek-ai/deepseek-harness',

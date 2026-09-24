@@ -1,4 +1,4 @@
-﻿import { createRequire } from 'node:module';
+import { createRequire } from 'node:module';
 
 import { getGlobalDispatcher } from 'undici';
 
@@ -37,7 +37,7 @@ export function adaptModel(options, model) {
 // 上游结构变化时构建脚本会拒绝生成，而不是在这里按版本号拦截运行。
 export function assertCompatible() {
   const require = createRequire(import.meta.url);
-  for (const name of ['dsh-llm-pi-ai', 'dsh-compaction-basic', 'dsh-agent-presets']) {
+  for (const name of ['dsh-llm-pi-ai', 'dsh-compaction-basic']) {
     require(`@deepseek-ai/${name}/package.json`);
   }
 }

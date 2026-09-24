@@ -1,14 +1,11 @@
-﻿# 停用原入口，由本插件沿用相同设置和凭据。不要改 name：它是身份校验。
+# 停用原入口，由本插件沿用相同设置和凭据。不要改 name：它是身份校验。
 - id: llm-pi-ai
   name: '@deepseek-ai/dsh-llm-pi-ai'
   disabled: true
-- id: agent-presets
-  name: '@deepseek-ai/dsh-agent-presets'
+# 0.1.7 起标准模式由 preset-standard 行声明，停用后由 dist/presets/standard.patch.yml 插入替换版。
+- id: preset-standard
+  name: '@deepseek-ai/dsh-agent-preset'
   disabled: true
 - insert:
     - id: qwen38-compaction-adapter
       name: './dist/adapter.mjs'
-    - id: qwen38-compaction-presets
-      name: './src/模式入口.mjs'
-      config:
-        default: standard

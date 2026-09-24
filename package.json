@@ -1,6 +1,6 @@
 {
   "name": "dsh-qwen38-compaction",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "DSH 与 Qwen3.8 上下文压缩适配：保留原模型接入及普通聊天行为",
   "type": "module",
   "license": "MIT",
@@ -10,7 +10,6 @@
   },
   "exports": {
     ".": "./dist/adapter.mjs",
-    "./presets": "./src/模式入口.mjs",
     "./compaction": "./dist/compaction.mjs",
     "./package.json": "./package.json"
   },
@@ -24,7 +23,10 @@
   ],
   "dsh": {
     "bundle": {
-      "patch": "cordis.patch.yml"
+      "patch": [
+        "cordis.patch.yml",
+        "./dist/presets/standard.patch.yml"
+      ]
     }
   },
   "scripts": {
@@ -32,8 +34,7 @@
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
-    "@deepseek-ai/dsh-agent-presets": "0.1.5-rc.1",
-    "@deepseek-ai/dsh-llm-pi-ai": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-llm-pi-ai": "0.1.7-rc.1",
     "undici": "7.29.0"
   },
   "peerDependencies": {
@@ -42,8 +43,12 @@
     "@deepseek-ai/dsh-llm": "*"
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-agent-loop": "0.1.5-rc.1",
-    "@deepseek-ai/dsh-agent-loop-testkit": "0.1.5-rc.1",
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-agent-loop": "0.1.7-rc.1",
+    "@deepseek-ai/dsh-agent-loop-testkit": "0.1.7-rc.1",
+    "@deepseek-ai/dsh-compaction-basic": "0.1.7-rc.1",
+    "@deepseek-ai/dsh-llm": "0.1.7-rc.1",
+    "@deepseek-ai/dsh-web-app": "0.1.7-rc.1",
     "js-yaml": "4.2.0"
   }
 }
